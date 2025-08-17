@@ -148,4 +148,12 @@ Before you begin, ensure you have the following:
 
 ---
 
+## Project Repository
+
+The project is hosted on GitHub. You can find the repository here:
+
+[DOCKER_N8N_Cloudflair](https://github.com/johermohit/DOCKER_N8N_Cloudflair)
+
+---
+
 Feel free to reach out for help if you encounter any issues!
