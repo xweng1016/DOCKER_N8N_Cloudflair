@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n
+    restart: always
+    environment:
+      # Optional: Add basic auth to your n8n editor for security
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=n8n
+      - N8N_BASIC_AUTH_PASSWORD=S{(U^E_PA55
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: always
+    command: tunnel --no-autoupdate --url http://n8n:5678
+    depends_on:
+      - n8n
+
+volumes:
+  n8n_data:
