@@ -42,7 +42,7 @@ Before you begin, ensure you have the following:
 1. Open PowerShell and navigate to the folder where you want to set up the project.
 2. Run the following command to download the project files:
    ```powershell
-   git clone <repository-url>
+   git clone https://github.com/johermohit/DOCKER_N8N_Cloudflair.git
    ```
    Replace `<repository-url>` with the actual URL of this repository.
 
