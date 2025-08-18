@@ -65,21 +65,25 @@ Before you begin, ensure you have the following:
 
 ---
 
-### Step 3: Start the Services
+### Step 3: Start the Services (one command)
 
-1. Run the following command to start the services:
-   ```powershell
-   docker-compose up
-   ```
+1. Run the setup script for your platform which will prepare certs (if possible) and start the services:
 
-**Expected Output**:
-- Correct: Logs showing the `n8n` and `cloudflared` services starting.
-- Incorrect: Errors like `docker-compose: command not found`. Ensure Docker Compose is installed.
+    - Linux / macOS:
+       ```bash
+       ./setup.sh
+       ```
 
-2. To run the services in the background, use:
-   ```powershell
-   docker-compose up -d
-   ```
+    - Windows (PowerShell):
+       ```powershell
+       PowerShell -ExecutionPolicy Bypass -File .\setup.ps1
+       ```
+
+2. Alternatively you can manually start with:
+
+    ```bash
+    docker compose up -d
+    ```
 
 ---
 
@@ -213,6 +217,27 @@ To make the setup process seamless for Docker users, follow these steps to secur
 3. Open the URL in your browser to access the `n8n` application securely.
 
 ---
+
+## Important: n8n access is tunnel-only by default
+
+- This project is configured to *not* expose n8n on the host machine by default. That forces students to use the Cloudflare tunnel URL (safer and consistent for labs).
+- If you want to allow local access for debugging or admin use only, edit your `docker-compose.yml` and add the host binding:
+
+```yaml
+   n8n:
+      # ...existing settings...
+      ports:
+         - "127.0.0.1:5678:5678"  # enables localhost-only access
+```
+
+After changing, restart:
+
+```bash
+docker compose down && docker compose up -d
+```
+
+If you accidentally expose n8n on `0.0.0.0`, stop immediately and reconfigure to `127.0.0.1`.
+
 
 ### Why This is Simple for Docker Users
 - **Self-Contained Project**: All files, including `cert.pem`, are stored within the project directory, making it portable and easy to share.

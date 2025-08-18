@@ -1,1 +1,4 @@
 credential.md
+.env
+/cloudflared/*.pem
+/cloudflared/*.json
