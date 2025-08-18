@@ -35,9 +35,11 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
-    command: tunnel --no-autoupdate --url http://n8n:5678
+    command: tunnel run n8n-tunnel
     environment:
-      - TUNNEL_ORIGIN_CERT=/path/to/your/cert.pem
+      - TUNNEL_ORIGIN_CERT=/certs/cert.pem
+    volumes:
+      - ./cloudflared:/certs
     depends_on:
       - n8n
     restart: unless-stopped

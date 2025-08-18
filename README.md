@@ -160,7 +160,7 @@ The project is hosted on GitHub. You can find the repository here:
 
 To make the setup process seamless for Docker users, follow these steps to securely expose your `n8n` application using a Cloudflare Tunnel:
 
-### Step 1: Install Cloudflared (One-Time Setup)
+### Step 1: Install Cloudflared
 1. Download and install `cloudflared` from the [official Cloudflare website](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/).
 2. Authenticate with Cloudflare by running:
    ```bash
@@ -169,12 +169,15 @@ To make the setup process seamless for Docker users, follow these steps to secur
    - This will open a browser for you to log in to your Cloudflare account.
    - After login, a `cert.pem` file will be generated in your local Cloudflare directory (e.g., `~/.cloudflared` or `C:\Users\<YourUsername>\.cloudflared`).
 
-### Step 2: Create a Named Tunnel (One-Time Setup)
-1. Run the following command to create a named tunnel:
+### Step 2: Move `cert.pem` to the Project Directory
+1. Copy the `cert.pem` file to the current project directory:
    ```bash
-   cloudflared tunnel create n8n-tunnel
+   cp ~/.cloudflared/cert.pem ./cloudflared/cert.pem
    ```
-2. Note the name of the tunnel (`n8n-tunnel`) for the next step.
+   - On Windows:
+     ```powershell
+     copy C:\Users\<YourUsername>\.cloudflared\cert.pem .\cloudflared\cert.pem
+     ```
 
 ### Step 3: Update Docker Compose
 1. Open the `docker-compose.yml` file and configure the `cloudflared` service:
@@ -186,19 +189,17 @@ To make the setup process seamless for Docker users, follow these steps to secur
      environment:
        - TUNNEL_ORIGIN_CERT=/certs/cert.pem
      volumes:
-       - ~/.cloudflared:/certs
+       - ./cloudflared:/certs
      depends_on:
        - n8n
      restart: unless-stopped
    ```
-2. Save the changes.
 
 ### Step 4: Start Everything with Docker
 1. Run the following command to start all services:
    ```bash
    docker-compose up -d
    ```
-2. The `cloudflared` container will establish a secure tunnel to Cloudflare.
 
 ### Step 5: Access Your Application
 1. Run the following command to find the tunnel URL:
@@ -214,6 +215,7 @@ To make the setup process seamless for Docker users, follow these steps to secur
 ---
 
 ### Why This is Simple for Docker Users
+- **Self-Contained Project**: All files, including `cert.pem`, are stored within the project directory, making it portable and easy to share.
 - **No Manual Steps After Setup**: Once the `cert.pem` file is in place and the `docker-compose.yml` is configured, everything runs with a single `docker-compose up` command.
 - **Persistent URL**: The named tunnel ensures a static and reliable URL for accessing your application.
 - **Secure by Default**: Cloudflare handles all the security, so you don’t need to worry about exposing your local machine.
