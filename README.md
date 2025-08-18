@@ -1,7 +1,8 @@
 #
 ## 🌍 Expose n8n to the Internet (Enable Cloudflare Tunnel)
 
-By default, public access is **disabled** for security. To enable:
+By default, public access is **disabled** for security. skip this for local acess only !!
+To enable:
 
 1. Edit your `docker-compose.yml` and uncomment the `cloudflared` service block (at the bottom of the file):
   ```yaml
