@@ -1,3 +1,55 @@
+---
+
+## 🐳 Useful Docker Commands
+
+- **See running containers:**
+  ```powershell
+  docker compose ps
+  ```
+- **View logs for a service:**
+  ```powershell
+  docker compose logs --tail 100 n8n
+  docker compose logs --tail 100 cloudflared
+  ```
+- **Stop all containers:**
+  ```powershell
+  docker compose down
+  ```
+- **Restart a service:**
+  ```powershell
+  docker compose restart n8n
+  docker compose restart cloudflared
+  ```
+
+---
+
+## 🌐 Access n8n on Localhost (with or without Cloudflare)
+
+By default, n8n is only accessible via the Cloudflare tunnel for security.
+
+**To also access n8n on your own machine (localhost):**
+
+1. Edit your `docker-compose.yml` and add this under the `n8n` service:
+   ```yaml
+   ports:
+     - "5678:5678"
+   ```
+   (Uncomment or add if not present.)
+
+2. Restart the containers:
+   ```powershell
+   docker compose up -d
+   ```
+
+3. Now you can access n8n at:
+   - [http://localhost:5678](http://localhost:5678) (local only)
+   - Or via the public Cloudflare URL (if cloudflared is enabled)
+
+**To disable Cloudflare tunnel:**
+- Edit `docker-compose.yml` and comment out or remove the `cloudflared` service block.
+- Restart with `docker compose up -d`.
+
+---
 
 # n8n + Postgres + Cloudflare Tunnel (Quick Start, No Login Needed)
 
