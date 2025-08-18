@@ -1,14 +1,22 @@
+version: '3.7'
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
     container_name: postgres
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=n8ndb
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   n8n:
     image: n8nio/n8n:latest
@@ -19,27 +27,34 @@ services:
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres
       - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=n8ndb
-      - DB_POSTGRESDB_USER=user
-      - DB_POSTGRESDB_PASSWORD=password
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
       - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=securepassword
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
       - N8N_RUNNERS_ENABLED=true
     volumes:
       - n8n_data:/home/node/.n8n
     depends_on:
       - postgres
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5678/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
-    command: tunnel run n8n-tunnel
+    # run named tunnel using MACCARD_ID from .env
+    command: tunnel run ${MACCARD_ID}
     environment:
-      - TUNNEL_ORIGIN_CERT=/certs/cert.pem
+      - TUNNEL_ORIGIN_CERT=${TUNNEL_CERT_PATH}
     volumes:
-      - ./cloudflared:/certs
+      - ./cloudflared:${TUNNEL_CERT_DIR}
     depends_on:
       - n8n
     restart: unless-stopped
