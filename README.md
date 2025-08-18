@@ -14,12 +14,18 @@
     docker compose up -d
     ```
 
-3. **Find your public n8n URL:**
-    ```powershell
-    docker compose logs --tail 100 cloudflared
-    ```
-    - Look for a line like: `https://random-string.trycloudflare.com`
-    - Open that URL in your browser to access n8n from anywhere!
+
+3. **Find your public n8n URL (the easy way!):**
+   - On Windows (PowerShell):
+     ```powershell
+     .\get_tunnel_url.ps1
+     ```
+   - On Mac/Linux/WSL (bash):
+     ```bash
+     ./get_tunnel_url.sh
+     ```
+   - The script will print your public n8n URL (e.g. `https://random-string.trycloudflare.com`).
+   - Open that URL in your browser to access n8n from anywhere!
 
 ---
 
