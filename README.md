@@ -81,23 +81,58 @@ By default, n8n is only accessible via the Cloudflare tunnel for security.
 
 ---
 
-# n8n + Postgres + Cloudflare Tunnel (Quick Start, No Login Needed)
 
-## 🚀 One-Command Setup
+# n8n + Postgres (Local-Only by Default, Public Access Optional)
 
-1. **Install prerequisites:**
-    - Docker Desktop: [Download](https://www.docker.com/products/docker-desktop/)
-    - Cloudflared:
-      - Windows: `winget install --id Cloudflare.cloudflared`
-      - Mac/Linux: [Cloudflare Docs](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/)
+## 🚦 Quick Start: Local-Only (No Internet Exposure)
 
-2. **Start everything:**
-    ```powershell
-    docker compose up -d
-    ```
+1. **Install Docker Desktop:**
+   - [Download for Windows/Mac](https://www.docker.com/products/docker-desktop/)
+   - For Linux: [Docker Docs](https://docs.docker.com/engine/install/)
 
+2. **Start n8n and Postgres locally:**
+   - Make sure your `docker-compose.yml` has the `n8n` service with this under it:
+     ```yaml
+     ports:
+       - "5678:5678"
+     ```
+   - Then run:
+     ```powershell
+     docker compose up -d
+     ```
 
-3. **Find your public n8n URL (the easy way!):**
+3. **Access n8n in your browser:**
+   - Go to [http://localhost:5678](http://localhost:5678)
+   - Log in with the credentials from your `.env` file.
+
+---
+
+## 🌍 Optional: Expose n8n to the Internet (Enable Cloudflare Tunnel)
+
+By default, public access is **disabled** for security. To enable public access:
+
+1. **Install Cloudflared:**
+   - Windows: `winget install --id Cloudflare.cloudflared`
+   - Mac/Linux: [Cloudflare Docs](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/)
+
+2. **Edit your `docker-compose.yml`:**
+   - Uncomment the `cloudflared` service block at the bottom of the file:
+     ```yaml
+     cloudflared:
+       image: cloudflare/cloudflared:latest
+       container_name: cloudflared
+       command: tunnel --no-autoupdate --url http://n8n:5678
+       depends_on:
+         - n8n
+       restart: unless-stopped
+     ```
+
+3. **Start or restart everything:**
+   ```powershell
+   docker compose up -d
+   ```
+
+4. **Find your public n8n URL:**
    - On Windows (PowerShell):
      ```powershell
      .\get_tunnel_url.ps1
@@ -108,6 +143,8 @@ By default, n8n is only accessible via the Cloudflare tunnel for security.
      ```
    - The script will print your public n8n URL (e.g. `https://random-string.trycloudflare.com`).
    - Open that URL in your browser to access n8n from anywhere!
+
+---
 
 ---
 
