@@ -1,4 +1,4 @@
-credential.md
+## credential.md not needed for quick tunnel mode
 .env
 /cloudflared/*.pem
 /cloudflared/*.json

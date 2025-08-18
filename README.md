@@ -1,38 +1,42 @@
-# n8n with Cloudflare Tunnel Setup using Docker Compose
 
-This guide provides a simplified approach to setting up n8n with a Cloudflare tunnel using Docker Compose. This setup allows you to securely access your n8n instance over the internet.
+# n8n + Postgres + Cloudflare Tunnel (Quick Start, No Login Needed)
 
-## Prerequisites
+## 🚀 One-Command Setup
 
-1.  **Docker:** Ensure Docker is installed on your system.
-    *   **Windows/macOS:** Install Docker Desktop from [Docker website](https://www.docker.com/products/docker-desktop/).
-    *   **Linux:** Follow the instructions for your distribution on the [Docker documentation](https://docs.docker.com/engine/install/).
-    Verify the installation by running `docker --version` in your terminal.
-2.  **Cloudflare:** This setup uses Cloudflare to securely access your n8n instance. The Cloudflare URL will be dynamically generated and printed by the `health_check.sh` script.
+1. **Install prerequisites:**
+    - Docker Desktop: [Download](https://www.docker.com/products/docker-desktop/)
+    - Cloudflared:
+      - Windows: `winget install --id Cloudflare.cloudflared`
+      - Mac/Linux: [Cloudflare Docs](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/)
 
-## Setup
-
-1.  **Run `run_compose.sh`:** This script starts the n8n and related services.
-    ```bash
-    # For Linux/macOS:
-    chmod +x run_compose.sh
-    ./run_compose.sh
-    # For Windows:
-    .\run_compose.ps1
-    
-2.  **Run `health_check.sh`:** This script checks the health of the n8n service and prints the Cloudflare URL.
-    ```bash
-    # For Linux/macOS:
-    chmod +x health_check.sh
-    ./health_check.sh
-    # For Windows:
-    .\health_check.ps1
+2. **Start everything:**
+    ```powershell
+    docker compose up -d
     ```
 
-## Accessing n8n
+3. **Find your public n8n URL:**
+    ```powershell
+    docker compose logs --tail 100 cloudflared
+    ```
+    - Look for a line like: `https://random-string.trycloudflare.com`
+    - Open that URL in your browser to access n8n from anywhere!
 
-Execute the `health_check.sh` script to view the Cloudflare URL and access your n8n instance.
+---
 
-## Conclusion
+## 🛠️ Troubleshooting
 
-By following these steps, you can quickly set up n8n with a Cloudflare tunnel using Docker Compose for secure remote access.
+- If you don’t see a tunnel URL in logs, wait a few seconds and check again.
+- For help, run:
+  ```powershell
+  docker compose ps
+  docker compose logs --tail 100 cloudflared
+  ```
+
+## 🔒 Security
+
+- n8n is **NOT** exposed on localhost by default (unless you map ports in docker-compose.yml).
+- Only accessible via the Cloudflare tunnel public URL.
+
+---
+
+**No Cloudflare login or credentials needed! Just run and go.**
