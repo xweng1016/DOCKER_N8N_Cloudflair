@@ -47,8 +47,6 @@ if [ -n "$url" ]; then
   echo "Tunnel URL: $url"
 else
   echo "No tunnel URL found in logs."
-  echo "  - If you used quick tunnel, run: docker logs cloudflared | grep trycloudflare"
-  echo "  - For a stable named tunnel: run 'cloudflared login' on host, create tunnel named as MACCARD_ID, copy cert.pem into ./cloudflared, then restart containers."
 fi
 
 cat <<'EOF'
