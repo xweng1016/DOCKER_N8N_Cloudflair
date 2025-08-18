@@ -156,4 +156,68 @@ The project is hosted on GitHub. You can find the repository here:
 
 ---
 
-Feel free to reach out for help if you encounter any issues!
+## Simplified Cloudflare Tunnel Setup
+
+To make the setup process easier, follow these steps to securely expose your `n8n` application using a Cloudflare Tunnel:
+
+### Step 1: Install Cloudflared
+1. Download and install `cloudflared` from the [official Cloudflare website](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/).
+2. Verify the installation by running:
+   ```powershell
+   cloudflared --version
+   ```
+   **Expected Output**: A version number like `cloudflared version 2025.x.x`.
+
+### Step 2: Authenticate with Cloudflare
+1. Run the following command to log in to your Cloudflare account:
+   ```powershell
+   cloudflared login
+   ```
+2. A browser window will open. Log in to your Cloudflare account and authorize the request.
+3. After successful login, a `cert.pem` file will be generated in your local machine's Cloudflare directory (e.g., `~/.cloudflared` on Linux/Mac or `C:\Users\<YourUsername>\.cloudflared` on Windows).
+
+### Step 3: Create a Named Tunnel
+1. Create a named tunnel for your `n8n` application:
+   ```powershell
+   cloudflared tunnel create n8n-tunnel
+   ```
+2. Note the name of the tunnel (`n8n-tunnel`) for the next step.
+
+### Step 4: Update Docker Compose
+1. Open the `docker-compose.yml` file and update the `cloudflared` service as follows:
+   ```yaml
+   cloudflared:
+     image: cloudflare/cloudflared:latest
+     container_name: cloudflared
+     command: tunnel run n8n-tunnel
+     environment:
+       - TUNNEL_ORIGIN_CERT=/certs/cert.pem
+     volumes:
+       - ~/.cloudflared:/certs
+     depends_on:
+       - n8n
+     restart: unless-stopped
+   ```
+2. Save the changes.
+
+### Step 5: Start the Services
+1. Run the following command to start all services:
+   ```powershell
+   docker-compose up
+   ```
+2. The `cloudflared` container will establish a secure tunnel to Cloudflare.
+
+### Step 6: Access Your Application
+1. Check the logs of the `cloudflared` container to find the URL of your named tunnel:
+   ```powershell
+   docker logs cloudflared
+   ```
+2. Look for a line like:
+   ```
+   Your quick Tunnel has been created! Visit it at: https://n8n-tunnel.cloudflare.com
+   ```
+3. Open the URL in your browser to access the `n8n` application securely.
+
+---
+
+This simplified guide ensures that even beginners can set up a secure Cloudflare Tunnel for their `n8n` application. Let us know if you encounter any issues!
