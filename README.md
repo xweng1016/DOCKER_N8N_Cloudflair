@@ -168,59 +168,105 @@ That's it — local first, then public if you need it.
 
 ## 🌍 Optional: Expose n8n to the Internet (Enable Cloudflare Tunnel)
 
-By default, public access is **disabled** for security. To enable public access:
+# n8n + Postgres — Local-first, public optional
 
-1. **Install Cloudflared:**
-   - Windows: `winget install --id Cloudflare.cloudflared`
-   - Mac/Linux: [Cloudflare Docs](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/)
-
-2. **Edit your `docker-compose.yml`:**
-   - Uncomment the `cloudflared` service block at the bottom of the file:
-     ```yaml
-     cloudflared:
-       image: cloudflare/cloudflared:latest
-       container_name: cloudflared
-       command: tunnel --no-autoupdate --url http://n8n:5678
-       depends_on:
-         - n8n
-       restart: unless-stopped
-     ```
-
-3. **Start or restart everything:**
-   ```powershell
-   docker compose up -d
-   ```
-
-4. **Find your public n8n URL:**
-   - On Windows (PowerShell):
-     ```powershell
-     .\get_tunnel_url.ps1
-     ```
-   - On Mac/Linux/WSL (bash):
-     ```bash
-     ./get_tunnel_url.sh
-     ```
-   - The script will print your public n8n URL (e.g. `https://random-string.trycloudflare.com`).
-   - Open that URL in your browser to access n8n from anywhere!
+This repository provides a minimal, beginner-friendly way to run n8n with Postgres using Docker Compose.
+Default behavior: local-only. Follow the optional section below to expose n8n via Cloudflare Tunnel.
 
 ---
 
+## 1) Local-only (safe — recommended for beginners)
+
+Prerequisites
+- Docker Desktop (Windows/macOS) or Docker Engine (Linux)
+
+Quick start
+1. Start the stack:
+```powershell
+docker compose up -d
+```
+2. Open n8n locally:
+- http://localhost:5678
+
+If n8n is not reachable on localhost, ensure the `n8n` service in `docker-compose.yml` has port mapping:
+```yaml
+services:
+  n8n:
+    ports:
+      - "5678:5678"
+```
+
 ---
 
-## 🛠️ Troubleshooting
+## 2) Optional: Expose n8n to the Internet (Cloudflare Tunnel)
 
-- If you don’t see a tunnel URL in logs, wait a few seconds and check again.
-- For help, run:
-  ```powershell
-  docker compose ps
-  docker compose logs --tail 100 cloudflared
-  ```
+Only enable this when you need external access. The compose file keeps cloudflared disabled by default.
 
-## 🔒 Security
+Steps
+1. Install cloudflared on your host:
+ - Windows: `winget install --id Cloudflare.cloudflared`
+ - Mac/Linux: follow Cloudflare docs
 
-- n8n is **NOT** exposed on localhost by default (unless you map ports in docker-compose.yml).
-- Only accessible via the Cloudflare tunnel public URL.
+2. In `docker-compose.yml`, uncomment the `cloudflared` service block (near the bottom):
+```yaml
+cloudflared:
+  image: cloudflare/cloudflared:latest
+  container_name: cloudflared
+  command: tunnel --no-autoupdate --url http://n8n:5678
+  depends_on:
+    - n8n
+  restart: unless-stopped
+```
+
+3. Start or restart the stack:
+```powershell
+docker compose up -d
+```
+
+4. Get the public URL (the helper extracts the `*.trycloudflare.com` address):
+ - PowerShell: `.\get_tunnel_url.ps1`
+ - Bash: `./get_tunnel_url.sh`
+
+Open the printed URL in your browser to access n8n from anywhere.
+
+Notes
+- Quick-tunnel (used here) is ephemeral and requires no Cloudflare account or credentials.
+- If you need a persistent, named tunnel, you'll need to follow Cloudflare's named-tunnel setup and provide credentials — this repo intentionally avoids that complexity for teaching.
 
 ---
 
-**No Cloudflare login or credentials needed! Just run and go.**
+## Useful Docker commands
+
+- See running containers:
+```powershell
+docker compose ps
+```
+- View logs (tail last 100 lines):
+```powershell
+docker compose logs --tail 100 n8n
+docker compose logs --tail 100 cloudflared
+```
+- Stop everything:
+```powershell
+docker compose down
+```
+- Restart a service:
+```powershell
+docker compose restart n8n
+docker compose restart cloudflared
+```
+
+---
+
+## Troubleshooting
+
+- If you don’t see a tunnel URL in logs, wait 10–30s and re-run the get_tunnel_url script.
+- If a container is stuck, run `docker compose ps` and inspect `docker compose logs --tail 200 <service>`.
+
+## Security note
+
+- Default = local only. Only enable Cloudflare Tunnel when you understand the tradeoffs.
+
+---
+
+That's it — local first, then public when you need it.
