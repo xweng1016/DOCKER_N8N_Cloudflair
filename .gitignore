@@ -1,3 +1,5 @@
+# Ignore .roomodes (VS Code/AI agent state)
+.roomodes
 ## credential.md not needed for quick tunnel mode
 .env
 /cloudflared/*.pem
