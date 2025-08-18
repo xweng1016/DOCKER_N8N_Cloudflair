@@ -14,13 +14,19 @@ This guide provides a simplified approach to setting up n8n with a Cloudflare tu
 
 1.  **Run `run_compose.sh`:** This script starts the n8n and related services.
     ```bash
+    # For Linux/macOS:
     chmod +x run_compose.sh
     ./run_compose.sh
+    # For Windows:
+    .\run_compose.sh
     ```
 2.  **Run `health_check.sh`:** This script checks the health of the n8n service and prints the Cloudflare URL.
     ```bash
+    # For Linux/macOS:
     chmod +x health_check.sh
     ./health_check.sh
+    # For Windows:
+    .\health_check.sh
     ```
 
 ## Accessing n8n
