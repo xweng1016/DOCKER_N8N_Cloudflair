@@ -1,92 +1,63 @@
-<#
-PowerShell Health Check for the n8n + postgres + cloudflared compose stack
+# PowerShell script to check the health of the project
+# - waits for containers to report healthy or running
+# - extracts cloudflared tunnel URL
 
-Usage: run this from the repository root in PowerShell:
-  .\health_check.ps1
+Write-Host "=== Project Health Check ==="
 
-What it does:
-- Verifies Docker is installed
-- Shows `docker compose ps` output
-- Shows short health/status for postgres and n8n
-- Extracts any URL(s) from cloudflared logs (trycloudflare / https links)
-- Prints quick troubleshooting hints
-#>
-
-function ExitWith($code, $msg) {
-    if ($msg) { Write-Host $msg }
-    exit $code
+# Ensure Docker is available
+if (!(Get-Command docker -ErrorAction SilentlyContinue)) {
+    Write-Host "ERROR: Docker is not installed or not in PATH. Please install Docker Desktop and try again."
+    exit 1
 }
 
-Write-Host "== health_check.ps1: Checking environment =="
+Write-Host "`nContainers (short):"
+docker ps --format "table {{.Names}}`t{{.Status}}`t{{.Ports}}"
 
-# Check Docker
-if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-    ExitWith 2 "Docker executable not found in PATH. Install Docker Desktop and re-run."
-}
-
-# Show Docker Compose status
-Write-Host "`n== docker compose ps =="
-try {
-    docker compose ps
-} catch {
-    Write-Host "Failed to run 'docker compose ps'. Make sure you're in the repo root and Docker is running."
-}
-
-Write-Host "`n== Service quick status (postgres, n8n, cloudflared) =="
-$services = @('postgres','n8n','cloudflared')
-foreach ($s in $services) {
-    try {
-        $has = docker compose ps | Select-String -Pattern $s -SimpleMatch -Quiet
-        if ($has) {
-            docker compose ps | Select-String -Pattern $s -SimpleMatch | ForEach-Object { Write-Host $_.Line }
-        } else {
-            Write-Host "Service '$s' not found in 'docker compose ps' output. It may not be created yet."
-        }
-    } catch {
-        Write-Host "Could not inspect service: $s"
-    }
-}
-
-Write-Host "`n== cloudflared logs (last 200 lines) =="
-try {
-    $logs = docker compose logs --tail 200 cloudflared 2>&1
-    if (-not $logs) { Write-Host "No logs available for cloudflared (service may not exist or is still starting)." }
-    else { $logs | Select-Object -First 200 | ForEach-Object { Write-Host $_ } }
-} catch {
-    Write-Host "Failed to fetch cloudflared logs: $_"
-    $logs = $null
-}
-
-# Try to extract URLs from logs
-Write-Host "`n== Extracted URLs from cloudflared logs =="
-if ($logs) {
-    $joined = ($logs -join "`n")
-    $matches = [regex]::Matches($joined, 'https?://\S+') | ForEach-Object { $_.Value } | Select-Object -Unique
-    if ($matches.Count -gt 0) {
-        foreach ($u in $matches) { Write-Host $u }
-    } else {
-        Write-Host "No http(s) URLs found in cloudflared logs."
-        if ($joined -match 'Cannot find a valid certificate' -or $joined -match 'Error locating origin cert' -or $joined -match 'cannot find a valid certificate') {
-            Write-Host "Hint: cloudflared cannot find 'cert.pem' in the mounted ./cloudflared directory."
-            Write-Host "  - Ensure you ran 'cloudflared login' and 'cloudflared tunnel create <MACCARD_ID>' on the host"
-            Write-Host "  - Copy $env:USERPROFILE\\.cloudflared\\cert.pem and the tunnel JSON into .\\cloudflared\\"
-            Write-Host "  - Then run: docker compose restart cloudflared"
+# Helper: wait for health or running
+function Wait-ForHealth {
+    param (
+        [string]$name
+    )
+    Write-Host "Waiting for $name " -NoNewline
+    for ($i = 1; $i -le 24; $i++) {
+        try {
+            $status = docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' $name -ErrorAction Stop
+            if ($status -eq "healthy") {
+                Write-Host "-> healthy"
+                return
+            }
+            if ($status -eq "running") {
+                Write-Host "-> running (no healthcheck)"
+                return
+            }
+            Write-Host "." -NoNewline
+            Start-Sleep -s 5
+        } catch {
+            Write-Host "`nTimeout waiting for $name. Current status: missing"
+            return
         }
     }
+    Write-Host "`nTimeout waiting for $name. Current status: $status"
+}
+
+Wait-ForHealth postgres
+Wait-ForHealth n8n
+
+Write-Host "`nCloudflared logs (searching for URL)..."
+# Try to find named-tunnel URL or trycloudflare quick-tunnel URL
+$url = docker logs cloudflared 2>&1 | Select-String -Pattern "https?://[a-zA-Z0-9._/-]*" | Select-String -Pattern "trycloudflare|cloudflare" | Select-Object -First 1
+if ($url) {
+    Write-Host "Tunnel URL: $($url.Line)"
 } else {
-    Write-Host "No cloudflared logs to analyze."
+    Write-Host "No tunnel URL found in logs."
 }
 
-Write-Host "`n== n8n logs (short tail) =="
-try {
-    docker compose logs --tail 100 n8n | Select-Object -First 100 | ForEach-Object { Write-Host $_ }
-} catch {
-    Write-Host "Could not fetch n8n logs."
-}
+Write-Host "`nUseful commands:"
+Write-Host " - docker compose logs -f n8n"
+Write-Host " - docker compose logs -f cloudflared"
+Write-Host " - docker compose down && docker compose up -d  (restart)"
 
-Write-Host "`n== Summary / Next steps =="
-Write-Host "- If you saw a trycloudflare / https URL above, open it in your browser to reach n8n through the tunnel."
-Write-Host "- If cloudflared is restarting with origin cert errors, run cloudflared login + tunnel create on your machine and copy cert.json + cert.pem into .\\cloudflared\\ (we added this to the README)."
-Write-Host "- If you want, I can wire this into the setup script or push the file to remote."
-
-Exit 0
+Write-Host "`nCommon fixes:"
+Write-Host " - Docker not running => start Docker Desktop"
+Write-Host " - cert.pem missing => run 'cloudflared login' on host and copy cert.pem to ./cloudflared/"
+Write-Host " - Port 5678 conflict => change host port in docker-compose.yml"

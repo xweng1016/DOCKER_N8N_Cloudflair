@@ -28,7 +28,6 @@ if [ ! -f "docker-compose.yml" ]; then
     echo "docker-compose.yml not found in the current directory."
     exit 1
 fi
-
 # Run Docker Compose
 echo "Starting Docker Compose..."
 docker-compose up -d
