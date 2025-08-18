@@ -1,3 +1,33 @@
+#
+## 🌍 Expose n8n to the Internet (Enable Cloudflare Tunnel)
+
+By default, public access is **disabled** for security. To enable:
+
+1. Edit your `docker-compose.yml` and uncomment the `cloudflared` service block (at the bottom of the file):
+  ```yaml
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    command: tunnel --no-autoupdate --url http://n8n:5678
+    depends_on:
+     - n8n
+    restart: unless-stopped
+  ```
+2. Start or restart the stack:
+  ```powershell
+  docker compose up -d
+  ```
+3. Find your public n8n URL:
+  ```powershell
+  .\get_tunnel_url.ps1
+  ```
+  or
+  ```bash
+  ./get_tunnel_url.sh
+  ```
+  Open the printed URL in your browser to access n8n from anywhere!
+
+---
 
 
 ## 🐳 Useful Docker Commands
