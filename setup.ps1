@@ -11,7 +11,9 @@ Write-Host "== setup.ps1 =="
 Write-Host "Target URL: $AppUrl"
 Write-Host "Using compose file: $ComposeFile"
 
-function Has-Cmd($name) { $null -ne (Get-Command $name -ErrorAction SilentlyContinue) }
+function Has-Cmd($name) { 
+    return $null -ne (Get-Command $name -ErrorAction SilentlyContinue) 
+}
 
 # 1) Prereqs
 if (-not (Has-Cmd "docker")) {
@@ -68,40 +70,40 @@ if ($composeCmd -eq "docker compose") {
 # 3) Health: 2xx/3xx/4xx => ready (handles 401 Basic Auth)
 Write-Host "⏳ Waiting for service at $AppUrl ..." -ForegroundColor Cyan
 for ($i=1; $i -le $Attempts; $i++) {
-  try {
-    $resp = Invoke-WebRequest -Uri $AppUrl -UseBasicParsing -TimeoutSec 3
-    if ($resp.StatusCode -ge 200 -and $resp.StatusCode -lt 500) {
-      Write-Host "✅ Ready: $AppUrl  (HTTP $($resp.StatusCode))" -ForegroundColor Green
-      
-      # Check if cloudflared is running and get tunnel URL
-      Write-Host "🔍 Checking for Cloudflare Tunnel..." -ForegroundColor Cyan
-      try {
-        if ($composeCmd -eq "docker compose") {
-            $tunnelLogs = docker compose -f "$ComposeFile" logs cloudflared
-        } else {
-            $tunnelLogs = docker-compose -f "$ComposeFile" logs cloudflared
+    try {
+        $resp = Invoke-WebRequest -Uri $AppUrl -UseBasicParsing -TimeoutSec 3
+        if ($resp.StatusCode -ge 200 -and $resp.StatusCode -lt 500) {
+            Write-Host "✅ Ready: $AppUrl  (HTTP $($resp.StatusCode))" -ForegroundColor Green
+            
+            # Check if cloudflared is running and get tunnel URL
+            Write-Host "🔍 Checking for Cloudflare Tunnel..." -ForegroundColor Cyan
+            try {
+                if ($composeCmd -eq "docker compose") {
+                    $tunnelLogs = docker compose -f "$ComposeFile" logs cloudflared
+                } else {
+                    $tunnelLogs = docker-compose -f "$ComposeFile" logs cloudflared
+                }
+                
+                $tunnelUrl = $tunnelLogs | Select-String -Pattern "https://.*\.trycloudflare\.com" | 
+                            ForEach-Object { $_.Matches.Value } | Select-Object -Last 1
+                            
+                if ($tunnelUrl) {
+                    Write-Host "🌐 Public URL (Cloudflare Tunnel): $tunnelUrl" -ForegroundColor Green
+                }
+            } catch {
+                # Cloudflared might not be running, which is OK
+            }
+            
+            exit 0
         }
-        
-        $tunnelUrl = $tunnelLogs | Select-String -Pattern "https://.*\.trycloudflare\.com" | 
-                     ForEach-Object { $_.Matches.Value } | Select-Object -Last 1
-                     
-        if ($tunnelUrl) {
-            Write-Host "🌐 Public URL (Cloudflare Tunnel): $tunnelUrl" -ForegroundColor Green
+    } catch {
+        if ($_.Exception.Response -and $_.Exception.Response.StatusCode.value__ -ge 400 -and $_.Exception.Response.StatusCode.value__ -lt 500) {
+            Write-Host "✅ Ready: $AppUrl  (HTTP $($_.Exception.Response.StatusCode.value__))" -ForegroundColor Green
+            exit 0
         }
-      } catch {
-        # Cloudflared might not be running, which is OK
-      }
-      
-      exit 0
+        Write-Host "  Attempt $i/$Attempts - Waiting for service to be ready..." -ForegroundColor Yellow
+        Start-Sleep -Seconds $SleepBetween
     }
-  } catch {
-    if ($_.Exception.Response -and $_.Exception.Response.StatusCode.value__ -ge 400 -and $_.Exception.Response.StatusCode.value__ -lt 500) {
-      Write-Host "✅ Ready: $AppUrl  (HTTP $($_.Exception.Response.StatusCode.value__))" -ForegroundColor Green
-      exit 0
-    }
-    Write-Host "  Attempt $i/$Attempts - Waiting for service to be ready..." -ForegroundColor Yellow
-    Start-Sleep -Seconds $SleepBetween
-  }
 }
 
 Write-Warning "Containers started, but $AppUrl didn't respond yet."
