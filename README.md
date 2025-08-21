@@ -6,6 +6,11 @@ This repository provides a simple way to run n8n with Postgres using Docker Comp
 
 ## 🚀 Quick Start
 
+### Prerequisites:
+- **Docker Desktop** (for Windows/macOS) or Docker Engine (for Linux)
+  - *The setup script will offer to install Docker Desktop if it's not detected*
+
+### Setup:
 1. Run the setup script:
    - **Linux/macOS:**
      ```bash
@@ -13,8 +18,9 @@ This repository provides a simple way to run n8n with Postgres using Docker Comp
      ```
    - **Windows:**
      ```powershell
-     ./setup.ps1
+     .\setup.ps1
      ```
+     (Note: Use `.\` not `./` for Windows PowerShell)
 
 2. Access n8n:
    - Local: [http://localhost:5678](http://localhost:5678)
