@@ -121,6 +121,64 @@ If you encounter issues, follow these steps:
 
 ---
 
+## 🤖 Setting Up the RAG Workflows
+
+This repository includes pre-built workflows in the `n8n workflows` folder that implement a Retrieval-Augmented Generation (RAG) system. Follow these steps to set them up:
+
+### 1. Import the Ingestion Workflow
+
+1. Open your n8n instance ([http://localhost:5678](http://localhost:5678) or your Cloudflare Tunnel URL)
+2. Log in with the default credentials:
+   - Username: `admin`
+   - Password: `securepassword`
+3. Click **Workflows** in the left sidebar
+4. Click the **Import from File** button (or press `i`)
+5. Select the `INGESTION.json` file from the `n8n workflows` folder
+6. Click **Import** and then **Save** the workflow
+
+### 2. Import the Chat Workflow
+
+1. Following the same steps, import the `CHAT.json` file from the `n8n workflows` folder
+2. Click **Import** and then **Save** the workflow
+
+### 3. Configure Google Gemini API Credentials
+
+1. In your n8n instance, go to **Settings** > **Credentials**
+2. Find and click on **Google Gemini (PaLM) API** or click **Create New**
+3. To get your Google Gemini API key:
+   - Go to [https://console.cloud.google.com](https://console.cloud.google.com)
+   - Sign in with your Google account or create a new one
+   - Create a new project
+   - Navigate to the Google AI Studio
+   - Click **Generate API Key** (make sure to select the same project)
+   - Copy the generated API key
+4. In n8n, paste the API key into the **API Key** field
+5. The **Host** should be set to `https://generativelanguage.googleapis.com` (default)
+6. Click **Save**
+
+### 4. Configure PostgreSQL Credentials
+
+1. In your n8n instance, go to **Settings** > **Credentials**
+2. Find and click on **Postgres PGVector Store** or click **Create New**
+3. Enter the following connection details:
+   - **Host**: `postgres`
+   - **Database**: `n8ndb`
+   - **User**: `user`
+   - **Password**: `password`
+   - **Port**: `5432`
+   - **SSL**: `Disabled`
+4. Click **Save**
+
+### 5. Test the Workflows
+
+1. Go to the **Workflows** page
+2. Open the **INGESTION** workflow and click **Execute Workflow** to load data
+3. Then open the **CHAT** workflow to start asking questions about the ingested data
+
+That's it! Your RAG system is now set up and ready to use.
+
+---
+
 ## 🔒 Security Notes
 
 1. **Default credentials**:
@@ -138,6 +196,10 @@ If you encounter issues, follow these steps:
      - Your n8n instance is accessible from the internet
      - The URL is public but randomly generated
      - Consider enabling n8n's encryption features for sensitive workflows
+
+3. **API keys**:
+   - The Google Gemini API key you generate is stored in n8n's encrypted credentials
+   - Avoid sharing your workflows with credential IDs included
 
 ---
 
