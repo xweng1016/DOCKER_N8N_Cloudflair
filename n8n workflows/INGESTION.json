@@ -1,0 +1,185 @@
+{
+  "name": "INGESTION",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "INGETION ",
+        "formDescription": "test ingestion",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "data",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "c48d685d-ed65-4a61-b497-89de30e203bb",
+      "name": "On form submission",
+      "webhookId": "70128154-1a66-43e1-b762-b95e7fb0acbd"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -16
+      ],
+      "id": "d309927c-1155-41a3-8201-fa9229b219ef",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        -16
+      ],
+      "id": "7723610b-1539-443f-a6ff-4fac5369c1a7",
+      "name": "Postgres PGVector Store",
+      "credentials": {
+        "postgres": {
+          "id": "wESXMfXkWn84QHOn",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        208
+      ],
+      "id": "c3ff438d-ff44-4e60-a02a-dbe3a6157ac6",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "modelName": "models/embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        112,
+        208
+      ],
+      "id": "a4cfc6a9-d7f1-4172-88d2-c64b5574947c",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "94nFxKYo5AOWkvFr",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## INGESTION \n",
+        "height": 848,
+        "width": 1392
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -480,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "3c5f3c95-ab8c-4ee2-9120-88c8a5c98051",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "---\n\n# Building the AI's Brain: The Knowledge Ingestion Workflow\n\nBefore our AI chatbot can answer any questions, we first need to give it a library to read from. This process, called **ingestion**, is how we take raw information (like a PDF document) and load it into the AI's specialized database.\n\nThis is the \"counterpart\" to the chat workflow. While the first workflow was about *retrieving* answers, this one is all about *providing* the knowledge in the first place.\n\n## The Ingestion Workflow Components Explained\n\nLet's break down how we get information from a simple file into the AI's memory.\n\n### 1. `On form submission`\n*   **Role:** The Drop-off Point\n*   This is a simple web form where you can upload a file. In this case, it's set up to accept PDF documents. Think of it as the mail slot where you drop off new books for the library.\n\n### 2. `Extract from File`\n*   **Role:** The Document Processor\n*   Once a PDF is uploaded, this node scans the document and extracts all the raw text from it. It essentially \"reads\" the document and pulls out all the words, ignoring the formatting, images, and layout.\n\n### 3. `Default Data Loader`\n*   **Role:** The Organizer\n*   The raw text is then passed to this loader. Its job is to take the long stream of text and break it down into smaller, manageable chunks or \"documents.\" This is important because it's more efficient for the AI to search through small, focused paragraphs than a giant, single block of text.\n\n### 4. `Embeddings Google Gemini`\n*   **Role:** The Expert Librarian\n*   This is the same \"Librarian\" from our chat workflow. It takes each chunk of text from the `Default Data Loader` and translates it into a numerical representation called a \"vector embedding.\" This vector captures the context and semantic meaning of the text. This is the most crucial step to making the library \"smart.\"\n*   **Real-World Link:** Learn more about this powerful concept from [Google's AI for Developers documentation](https://ai.google.dev/docs/embeddings_guide).\n\n### 5. `Postgres PGVector Store`\n*   **Role:** The Smart Library\n*   Finally, the newly created vector embeddings (the \"smart\" version of our text chunks) are stored in this specialized database. The `mode` is set to `insert`, which means we are adding new information. Once stored here, this knowledge is ready to be searched and retrieved by the chat workflow.\n*   **Real-World Link:** This uses [PostgreSQL](https://www.postgresql.org/) with the `pgvector` extension, a popular and powerful combination for building AI knowledge bases.\n\n---\n\n## How It All Works Together: An Example\n\n1.  **You upload a PDF** about climate change using the web form.\n2.  The **`Extract from File`** node pulls all the text out of the PDF.\n3.  The **`Default Data Loader`** breaks this text into logical paragraphs or chunks.\n4.  The **`Embeddings Google Gemini`** model converts each chunk into a unique vector embedding.\n5.  The **`Postgres PGVector Store`** takes all these embeddings and files them away in the database.\n\nNow, the \"Smart Library\" is updated. The next time a user asks the chatbot, \"What are the effects of rising sea levels?\", the chat workflow can instantly search this newly added information to find the relevant chunks and provide an accurate answer.",
+        "height": 1184,
+        "width": 1600,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        960,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "6b4133fb-ac96-4f27-801f-83932be30c29",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2e4bc235-e545-4c45-859b-342b84e6ee3d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "98725356255949fdc1f5a9c519bdf3f296bcfe9d757637e3b4d644300ec8aa8b"
+  },
+  "id": "RmsuDA178tpoYQ6E",
+  "tags": []
+}

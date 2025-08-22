@@ -32,14 +32,13 @@ services:
       - postgres
     restart: unless-stopped
 
-# cloudflared:
-#   image: cloudflare/cloudflared:latest
-#   container_name: cloudflared
-#   command: tunnel --no-autoupdate --url http://n8n:5678
-#   depends_on:
-#     - n8n
-#   restart: unless-stopped
-
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    command: tunnel --no-autoupdate --url http://n8n:5678
+    depends_on:
+      - n8n
+    restart: unless-stopped
 volumes:
   postgres_data:
   n8n_data:

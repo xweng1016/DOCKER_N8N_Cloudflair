@@ -1,0 +1,259 @@
+{
+  "name": "CHAT",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        1104
+      ],
+      "id": "8bf866bf-6080-437b-86d8-064429729c59",
+      "name": "When chat message received",
+      "webhookId": "e6251d43-c9e8-4405-9b22-ebab16e8e78d"
+    },
+    {
+      "parameters": {
+        "modelName": "models/embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        1744
+      ],
+      "id": "636d7ce1-94b9-4d99-ac8e-b0c69b3d6e1c",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "94nFxKYo5AOWkvFr",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant\nyou have a memory and tools use that to answer concept "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        1104
+      ],
+      "id": "841243ae-d53b-45ed-ab5e-b4de2db9128a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        944,
+        1328
+      ],
+      "id": "e8c27d1a-e841-4cd6-a405-95ce8cc81a3c",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "94nFxKYo5AOWkvFr",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        1328
+      ],
+      "id": "61552670-8e56-46b3-9860-a5610d5b4335",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "name": "single_source_of_truth",
+        "description": "Retrieve information about everything "
+      },
+      "id": "7e2dd206-882f-4cd6-a055-d29e59f32dfa",
+      "name": "Vector Store Tool1",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "position": [
+        1200,
+        1328
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-exp",
+        "options": {}
+      },
+      "id": "d2123b5c-708f-4636-b64b-e31ab040f0a2",
+      "name": "Google Gemini Chat Model (retrieval)1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        1392,
+        1536
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "94nFxKYo5AOWkvFr",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        1536
+      ],
+      "id": "7443e081-a338-4a4e-830c-b3905281a818",
+      "name": "Postgres PGVector Store1",
+      "credentials": {
+        "postgres": {
+          "id": "wESXMfXkWn84QHOn",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## chat bot",
+        "height": 848,
+        "width": 1088
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        560,
+        1040
+      ],
+      "id": "ef5c7a57-af9d-4244-9e39-da6b45f2ff7e",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "\n\n# Understanding Your AI Chatbot: A Simple Guide to RAG\n\nThis document breaks down a workflow for creating a smart chatbot. This isn't just any chatbot; it's one that can remember your conversation and look up external information to give you smarter, more accurate answers.\n\nThis process uses a powerful AI technique called **Retrieval-Augmented Generation (RAG)**.\n\n> **Analogy:** Think of this AI as a super-smart research assistant. You ask a question. The assistant first thinks about what you've already discussed (**Memory**), then quickly searches through a specialized library for the most relevant facts (**Retrieval**), and finally, uses that information to craft a perfect, well-informed answer for you (**Generation**).\n\n## The Workflow Components Explained\n\nLet's look at each part of the system and what it does.\n\n### 1. `When chat message received`\n*   **Role:** The Messenger\n*   This is simply the starting point—the chat window where a user types their question. It's the front door for all communication with the AI.\n\n### 2. `AI Agent`\n*   **Role:** The Brain\n*   This is the central coordinator. When your message comes in, the AI Agent decides what to do. Should it answer directly? Does it need to check its memory? Or does it need to use one of its tools to look up information? It's the decision-maker that orchestrates the entire process.\n\n### 3. `Google Gemini Chat Model`\n*   **Role:** The Conversationalist\n*   This is the core language model that understands and generates human-like text. It’s what allows the AI to chat naturally.\n*   **Real-World Link:** You can experience a similar model on the [Google AI Studio](https://aistudio.google.com/) website.\n\n### 4. `Simple Memory`\n*   **Role:** The Short-Term Memory\n*   This component gives the AI a memory of the current conversation. It's why you can ask follow-up questions like \"what about the second point?\" without having to repeat the original context.\n\n### 5. `Vector Store Tool`\n*   **Role:** The Research Skill\n*   This is a special tool the `AI Agent` can use. When the agent determines it needs more information, it activates this tool to search its knowledge base.\n\n### 6. `Postgres PGVector Store`\n*   **Role:** The Smart Library\n*   This is the specialized database where information is stored. It's a \"vector\" store, meaning information is organized by its contextual meaning, not just keywords. This allows the AI to find relevant documents even if they don't contain the exact words from your question.\n*   **Real-World Link:** [PostgreSQL](https://www.postgresql.org/) is a popular open-source database, and the `pgvector` extension gives it this smart-search capability.\n\n### 7. `Embeddings Google Gemini`\n*   **Role:** The Expert Librarian\n*   Before information can be put into the \"Smart Library,\" it needs to be translated into a numerical format (vectors) that the AI can understand. This model acts like a librarian, reading all the source text and organizing it based on its meaning.\n*   **Real-World Link:** Learn more about this process from [Google's AI for Developers documentation](https://ai.google.dev/docs/embeddings_guide).\n\n### 8. `Google Gemini Chat Model (retrieval)`\n*   **Role:** The Synthesizer\n*   After the `Vector Store Tool` retrieves the necessary information, this second Gemini model takes over. Its job is to synthesize the retrieved facts with its general knowledge to formulate the final, comprehensive answer to your question.\n\n---\n\n## How It All Works Together: An Example\n\n1.  **You ask:** \"What is RAG and why is it important?\"\n2.  The **`AI Agent`** (The Brain) receives this and decides it needs to look up information from its knowledge base.\n3.  It uses the **`Vector Store Tool`** (The Research Skill) to search the **`Postgres PGVector Store`** (The Smart Library).\n4.  The store provides the most relevant documents about RAG.\n5.  The **`Google Gemini Chat Model (retrieval)`** (The Synthesizer) takes these documents and crafts a detailed, easy-to-understand explanation.\n6.  The final answer is sent back to you in the chat.",
+        "height": 1600,
+        "width": 1168,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2064,
+        1168
+      ],
+      "typeVersion": 1,
+      "id": "599a12fb-894d-4567-9bbc-b85e08ddb188",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Postgres PGVector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Tool1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model (retrieval)1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Vector Store Tool1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres PGVector Store1": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Tool1",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "92e7837f-16cd-4b18-b9cc-ac51bcb2e786",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "98725356255949fdc1f5a9c519bdf3f296bcfe9d757637e3b4d644300ec8aa8b"
+  },
+  "id": "QVWvGkqu3bo48zMw",
+  "tags": []
+}

@@ -183,8 +183,8 @@ That's it! Your RAG system is now set up and ready to use.
 
 1. **Default credentials**:
    - **n8n web interface**: 
-     - Username: `admin`
-     - Password: `securepassword`
+     - Username: `your username `
+     - Password: ` your securepassword`
    - **PostgreSQL database**:
      - Username: `user`
      - Password: `password`
