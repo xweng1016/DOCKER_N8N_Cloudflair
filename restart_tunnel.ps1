@@ -1,88 +1,53 @@
-# Restart Cloudflare Tunnel and Get New URL
-$ErrorActionPreference = "Stop"
+# Simple Restart Cloudflare Tunnel Script
+Write-Host "Restarting Cloudflare Tunnel..." -ForegroundColor Cyan
 
-Write-Host "🔄 Restarting Cloudflare Tunnel..." -ForegroundColor Cyan
-
-# Check if Docker Compose is available
-function Has-Cmd($name) { 
-    return $null -ne (Get-Command $name -ErrorAction SilentlyContinue) 
-}
-
-# Detect Docker Compose command
-$composeCmd = $null
-if (Has-Cmd "docker-compose") {
-    $composeCmd = "docker-compose"
+# Check if n8n is running
+$n8nRunning = docker ps --filter "name=n8n" --filter "status=running" --format "table {{.Names}}" | Select-String "n8n"
+if (-not $n8nRunning) {
+    Write-Host "n8n container is not running. Starting the full stack..." -ForegroundColor Yellow
+    docker compose up -d
+    Start-Sleep -Seconds 10
 } else {
-    try {
-        docker compose version | Out-Null
-        $composeCmd = "docker compose"
-    } catch {
-        Write-Host "❌ Docker Compose not found!" -ForegroundColor Red
-        exit 1
-    }
+    Write-Host "n8n container is running" -ForegroundColor Green
 }
 
-try {
-    # Stop cloudflared container
-    Write-Host "⏹️  Stopping cloudflared container..." -ForegroundColor Yellow
-    if ($composeCmd -eq "docker compose") {
-        docker compose stop cloudflared
-    } else {
-        docker-compose stop cloudflared
-    }
-    
-    # Wait a moment
-    Start-Sleep -Seconds 2
-    
-    # Start cloudflared container
-    Write-Host "▶️  Starting cloudflared container..." -ForegroundColor Green
-    if ($composeCmd -eq "docker compose") {
-        docker compose start cloudflared
-    } else {
-        docker-compose start cloudflared
-    }
-    
-    # Wait for tunnel to establish
-    Write-Host "⏳ Waiting for tunnel to establish (30 seconds)..." -ForegroundColor Cyan
-    Start-Sleep -Seconds 30
-    
-    # Get the new tunnel URL
-    Write-Host "🔍 Getting tunnel URL..." -ForegroundColor Cyan
-    
-    $tunnelLogs = if ($composeCmd -eq "docker compose") {
-        docker compose logs cloudflared
-    } else {
-        docker-compose logs cloudflared
-    }
-    
-    $tunnelUrl = $tunnelLogs | Select-String -Pattern "https://.*\.trycloudflare\.com" | 
-                 ForEach-Object { $_.Matches.Value } | Select-Object -Last 1
-    
-    if ($tunnelUrl) {
-        Write-Host ""
-        Write-Host "✅ Tunnel restarted successfully!" -ForegroundColor Green
-        Write-Host "🌐 New Tunnel URL: $tunnelUrl" -ForegroundColor Cyan
-        Write-Host ""
-        Write-Host "📋 URL copied to clipboard (if available)" -ForegroundColor Yellow
-        
-        # Try to copy to clipboard (Windows only)
-        try {
-            $tunnelUrl | Set-Clipboard
-            Write-Host "✅ URL copied to clipboard!" -ForegroundColor Green
-        } catch {
-            Write-Host "⚠️  Could not copy to clipboard, but URL is shown above" -ForegroundColor Yellow
-        }
-    } else {
-        Write-Host "❌ Could not find tunnel URL in logs" -ForegroundColor Red
-        Write-Host "📋 Check logs manually:" -ForegroundColor Yellow
-        Write-Host "   $composeCmd logs cloudflared" -ForegroundColor Gray
-        exit 1
-    }
-    
-} catch {
-    Write-Host "❌ Error restarting tunnel: $($_.Exception.Message)" -ForegroundColor Red
+# Check if cloudflared exists
+$cloudflaredExists = docker ps -a --filter "name=cloudflared" --format "table {{.Names}}" | Select-String "cloudflared"
+if (-not $cloudflaredExists) {
+    Write-Host "Cloudflared container not found!" -ForegroundColor Red
     exit 1
+} else {
+    Write-Host "Cloudflared container found" -ForegroundColor Green
 }
 
-Write-Host ""
-Write-Host "💡 Tip: If the tunnel disconnects again, run this script: .\restart_tunnel.ps1" -ForegroundColor Blue
+# Stop and start cloudflared
+Write-Host "Stopping cloudflared..." -ForegroundColor Yellow
+docker compose stop cloudflared
+
+Start-Sleep -Seconds 3
+
+Write-Host "Starting cloudflared..." -ForegroundColor Green
+docker compose start cloudflared
+
+Write-Host "Waiting for tunnel to establish..." -ForegroundColor Cyan
+Start-Sleep -Seconds 15
+
+# Get tunnel URL
+$tunnelLogs = docker compose logs cloudflared
+$tunnelUrl = $tunnelLogs | Select-String -Pattern "https://.*\.trycloudflare\.com" | ForEach-Object { $_.Matches.Value } | Select-Object -Last 1
+
+if ($tunnelUrl) {
+    Write-Host ""
+    Write-Host "Tunnel restarted successfully!" -ForegroundColor Green
+    Write-Host "New Tunnel URL: $tunnelUrl" -ForegroundColor Cyan
+    
+    # Copy to clipboard
+    try {
+        $tunnelUrl | Set-Clipboard
+        Write-Host "URL copied to clipboard!" -ForegroundColor Green
+    } catch {
+        Write-Host "Could not copy to clipboard" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "Could not find tunnel URL in logs" -ForegroundColor Red
+}
