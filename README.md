@@ -79,6 +79,17 @@ By default, your n8n instance is only accessible locally for security. To expose
      ./get_tunnel_url.sh
      ```
 
+4. **If the tunnel disconnects** (which can happen after periods of inactivity):
+   - **Windows**:
+     ```powershell
+     .\restart_tunnel.ps1
+     ```
+   - **Linux/macOS**:
+     ```bash
+     ./restart_tunnel.sh
+     ```
+   This will restart the Cloudflare tunnel and provide you with a new URL.
+
 The script will output a URL (like `https://random-words.trycloudflare.com`). Use this to access your n8n instance from anywhere!
 
 > **Note**: This uses Cloudflare's free ephemeral tunnels. The URL will change if you restart the stack. No Cloudflare account is required.
@@ -105,6 +116,12 @@ If you encounter issues, follow these steps:
      - Wait 10-30 seconds for the tunnel to establish
      - Check logs: `docker compose logs cloudflared`
      - Restart cloudflared: `docker compose restart cloudflared`
+   
+   - **Tunnel disconnected after idle time**:
+     - Use the restart tunnel script:
+       - Windows: `.\restart_tunnel.ps1`
+       - Linux/macOS: `./restart_tunnel.sh`
+     - This automatically restarts the tunnel and gives you a new URL
    
    - **n8n not accessible via tunnel URL**:
      - Check if n8n is running: `docker compose ps`
