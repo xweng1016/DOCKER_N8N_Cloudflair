@@ -80,15 +80,34 @@ By default, your n8n instance is only accessible locally for security. To expose
      ```
 
 4. **If the tunnel disconnects** (which can happen after periods of inactivity):
-   - **Windows**:
-     ```powershell
-     .\restart_tunnel.ps1
-     ```
-   - **Linux/macOS**:
+   
+   The restart script includes health checks and will:
+   - ✅ Verify n8n container is running
+   - ✅ Check if cloudflared container exists
+   - 🔄 Restart the tunnel with retries
+   - 📋 Copy the new URL to clipboard (if available)
+   - 🧪 Test tunnel connectivity
+   
+   **Windows**:
+   ```powershell
+   .\restart_tunnel.ps1
+   ```
+   
+   **Linux/macOS**:
+   ```bash
+   ./restart_tunnel.sh
+   ```
+   
+   **Clipboard support**:
+   - Windows: Automatic (built-in)
+   - macOS: Uses `pbcopy` (pre-installed)
+   - Linux: Uses `xclip` or `wl-copy` (install with your package manager)
      ```bash
-     ./restart_tunnel.sh
+     # Ubuntu/Debian
+     sudo apt install xclip
+     # or for Wayland
+     sudo apt install wl-clipboard
      ```
-   This will restart the Cloudflare tunnel and provide you with a new URL.
 
 The script will output a URL (like `https://random-words.trycloudflare.com`). Use this to access your n8n instance from anywhere!
 
